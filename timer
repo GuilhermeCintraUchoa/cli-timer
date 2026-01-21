@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+sessions_path="$HOME/sessions/"
+
 state=
 minutes=0
 day=$(date +"%d/%m/%y")
@@ -28,7 +30,7 @@ initial_prompt() {
     echo "ERROR: Empty Input"
     exit 1
   fi
-  echo $minutes > ./sessions/t
+  echo $minutes > $HOME/sessions/today
 }
 
 read_input() {
@@ -37,7 +39,7 @@ read_input() {
 
   if [ "$pause" = "p" ] 
     then
-      t=$(cat ./sessions/t)
+      t=$(cat $HOME/sessions/today)
       kill "$tloop_pid"
       tloop_pid=
       echo
@@ -57,14 +59,14 @@ read_input() {
 }
 
 tloop() {
-  t=$(cat ./sessions/t)
+  t=$(cat $HOME/sessions/today)
   echo -ne "\r$t minutes left"
   while [ $t -gt 0 ]; do
     sleep 1
     let "t-=1"
     text="$t minutes left"
     echo -ne "\r$text"
-    echo $t > ./sessions/t
+    echo $t > $HOME/sessions/today
   done
   echo
   echo "Press Enter to Close"
