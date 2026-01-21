@@ -10,7 +10,7 @@ echo "$day"
 
 cleanup() {
   echo
-  echo -n "Timer Closed! Start a new one now."
+  echo "Timer Closed! Start a new one now."
 
   if [[ -n $tloop_pid ]]; then
     kill "$tloop_pid"
@@ -51,10 +51,6 @@ read_input() {
       then
         beg
       fi
-  fi
-  if [ "$pause" = " " ] 
-  then
-    echo "aa"
   fi
 }
 
