@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sessions_path="$HOME/sessions/"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 state=
 minutes=0
@@ -30,7 +30,7 @@ initial_prompt() {
     echo "ERROR: Empty Input"
     exit 1
   fi
-  echo $minutes > $HOME/sessions/today
+  echo $minutes > $SCRIPT_DIR/sessions/today
 }
 
 read_input() {
@@ -39,40 +39,41 @@ read_input() {
 
   if [ "$pause" = "p" ] 
     then
-      t=$(cat $HOME/sessions/today)
+      t=$(cat $SCRIPT_DIR/sessions/today)
       kill "$tloop_pid"
       tloop_pid=
       echo
-      echo "PAUSED AT $t"
+      echo "PAUSED AT $t! Press 's' to start."
 
       start=
       read -sn 1 start
       if [ "$start" = "s" ]
       then
+        echo
+        echo "Starting..."
         beg
       fi
   fi
 }
 
 tloop() {
-  t=$(cat $HOME/sessions/today)
-  echo -ne "\r$t minutes left"
+  t=$(cat $SCRIPT_DIR/sessions/today)
+  printf "\r$t minutes left"
   while [ $t -gt 0 ]; do
-    sleep 60 
+    sleep 1
     let "t-=1"
     text="$t minutes left"
-    echo -ne "\r$text"
-    echo $t > $HOME/sessions/today
+    # echo -ne "\r$text"
+    printf "\r$text"
+    echo $t > $SCRIPT_DIR/sessions/today
   done
-  echo
-  echo "Press Enter to Close"
-  while sleep 2; do
-    echo "Press Enter to Close"
+
+  printf "\nPress Enter to Close\n"
+  paplay $SCRIPT_DIR/assets/sound.wav
+  while sleep 3; do
+    printf "Press Enter to Close\n"
   done
 }
-
-initial_prompt
-
 
 beg() {
   if [[ -n $tloop_pid ]]; then
@@ -85,4 +86,7 @@ beg() {
 
   read_input
 }
+
+initial_prompt
+
 beg
