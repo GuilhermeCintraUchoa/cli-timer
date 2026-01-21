@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# minutes=0
 
-minutes=0
 day=$(date +"%d/%m/%y")
 # TODO: every file should be a date of this format and should store every session
-echo "$day"
+printf "$day\n"
 
 cleanup() {
-  echo
-  echo "Timer Closed! Start a new one now."
+  if [[ -n $minutes ]]; then
+    printf "\n\nTimer Closed! Start a new one now.\n"
+  fi
 
   if [[ -n $tloop_pid ]]; then
     kill "$tloop_pid"
@@ -26,7 +27,7 @@ initial_prompt() {
 
   read -r minutes
   if [ -z $minutes ]; then
-    echo "ERROR: Empty Input"
+    printf "\nERROR: Empty Input\n"
     exit 1
   fi
   echo $minutes > $SCRIPT_DIR/sessions/today
@@ -41,15 +42,13 @@ read_input() {
       t=$(cat $SCRIPT_DIR/sessions/today)
       kill "$tloop_pid"
       tloop_pid=
-      echo
-      echo "PAUSED AT $t! Press 's' to start."
+      printf "\n\nPAUSED AT $t! Press 's' to start."
 
       start=
       read -sn 1 start
       if [ "$start" = "s" ]
       then
-        echo
-        echo "Starting..."
+        printf "\n\nStarting...\n"
         beg
       fi
   fi
@@ -57,12 +56,12 @@ read_input() {
 
 tloop() {
   t=$(cat $SCRIPT_DIR/sessions/today)
+  printf "\n"
   printf "\r$t minutes left"
   while [ $t -gt 0 ]; do
-    sleep 60
+    sleep 1
     let "t-=1"
     text="$t minutes left"
-    # echo -ne "\r$text"
     printf "\r$text"
     echo $t > $SCRIPT_DIR/sessions/today
   done
