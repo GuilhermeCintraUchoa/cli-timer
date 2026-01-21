@@ -2,7 +2,6 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-state=
 minutes=0
 day=$(date +"%d/%m/%y")
 # TODO: every file should be a date of this format and should store every session
@@ -60,7 +59,7 @@ tloop() {
   t=$(cat $SCRIPT_DIR/sessions/today)
   printf "\r$t minutes left"
   while [ $t -gt 0 ]; do
-    sleep 1
+    sleep 60
     let "t-=1"
     text="$t minutes left"
     # echo -ne "\r$text"
