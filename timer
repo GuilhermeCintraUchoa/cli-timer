@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+state=
+minutes=0
+day=$(date +"%d/%m/%y")
+# TODO: every file should be a date of this format and should store every session
+echo "$day"
+
+cleanup() {
+  echo
+  echo -n "Timer Closed! Start a new one now."
+
+  if [[ -n $tloop_pid ]]; then
+    kill "$tloop_pid"
+  fi
+}
+trap cleanup EXIT
+
+initial_prompt() {
+  SUFFIX=".. minutes"
+
+  printf "timer for %s" "$SUFFIX"
+
+  tput cub "${#SUFFIX}"
+
+  read -r minutes
+  if [ -z $minutes ]; then
+    echo "ERROR: Empty Input"
+    exit 1
+  fi
+  echo $minutes > ./sessions/t
+}
+
+read_input() {
+  pause=
+  read -sn 1 pause
+
+  if [ "$pause" = "p" ] 
+    then
+      t=$(cat ./sessions/t)
+      kill "$tloop_pid"
+      tloop_pid=
+      echo
+      echo "PAUSED AT $t"
+
+      start=
+      read -sn 1 start
+      if [ "$start" = "s" ]
+      then
+        beg
+      fi
+  fi
+  if [ "$pause" = " " ] 
+  then
+    echo "aa"
+  fi
+}
+
+tloop() {
+  t=$(cat ./sessions/t)
+  echo -ne "\r$t minutes left"
+  while [ $t -gt 0 ]; do
+    sleep 1
+    let "t-=1"
+    text="$t minutes left"
+    echo -ne "\r$text"
+    echo $t > ./sessions/t
+  done
+  echo
+  echo "Press Enter to Close"
+  while sleep 2; do
+    echo "Press Enter to Close"
+  done
+}
+
+initial_prompt
+
+
+beg() {
+  if [[ -n $tloop_pid ]]; then
+    kill "$tloop_pid"
+    tloop_pid=
+  fi
+  tloop_pid=
+  tloop&
+  tloop_pid=$!
+
+  read_input
+}
+beg
