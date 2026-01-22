@@ -3,6 +3,8 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 day=$(date +"%d.%m.%y")
 
+SOUND_EFFECT="$SCRIPT_DIR/assets/bell.wav"
+
 todays_file=$(find $SCRIPT_DIR/sessions/ -name $day)
 if [[ -z $todays_file ]]; then
   touch "$SCRIPT_DIR/sessions/$day"
@@ -65,7 +67,7 @@ tloop() {
   printf "\n"
   printf "\r$t minutes left"
   while [ $t -gt 0 ]; do
-    sleep 60
+    sleep 1
     let "t-=1"
     text="$t minutes left"
     printf "\r$text"
@@ -73,8 +75,9 @@ tloop() {
   done
 
   printf "\nPress Enter to Close\n"
-  paplay $SCRIPT_DIR/assets/sound.wav
+  paplay $SOUND_EFFECT
   while sleep 3; do
+    paplay $SOUND_EFFECT
     printf "Press Enter to Close\n"
   done
 }
