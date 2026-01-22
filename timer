@@ -45,7 +45,7 @@ read_input() {
   pause=
   read -sn 1 pause
 
-  if [ "$pause" = "p" ] 
+  if [ "$pause" = "p" ] || [ "$pause" = "P" ]
     then
       t=$(cat $todays_file)
       kill "$tloop_pid"
@@ -54,7 +54,7 @@ read_input() {
 
       start=
       read -sn 1 start
-      if [ "$start" = "s" ]
+      if [ "$start" = "s" ] || [ "$start" = "S" ]
       then
         printf "\n\nStarting...\n"
         beg
