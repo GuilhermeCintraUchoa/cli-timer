@@ -12,20 +12,28 @@ if [[ -z $tmp_file ]]; then
   tmp_file=$(find $SCRIPT_DIR/sessions/ -name "tmp")
 fi 
 
-# Creating the todays file
+# Creating todays file
 todays_file=$(find $SCRIPT_DIR/sessions/ -name $day) 
 if [[ -z $todays_file ]]; then
   touch "$SCRIPT_DIR/sessions/$day"
   todays_file=$(find $SCRIPT_DIR/sessions/ -name $day)
-  echo "Number of sessions: 0" > $todays_file
+  echo -e "Number of sessions: 0" > $todays_file
+  echo -e "Total amount (in minutes): 0\n" >> $todays_file
 fi 
 
 number_of_sessions_today=$(head -n 1 $todays_file | awk 'NF>1{print $NF}')
 # first_line_today=$(head -n 1 $todays_file)
 # printf "n: $number_of_sessions_today"
 
-# TODO: every file should be a date of this format and should store every session
 printf "day: $day\n"
+
+
+next=$(expr $number_of_sessions_today + 1)
+echo "[SESSION $next]" >> $todays_file
+echo "Started at $(date +"%d-%m-%4Y %T")" >> $todays_file
+
+timer_total_amount=0
+
 
 cleanup() {
   if [[ -n $minutes ]]; then
@@ -36,8 +44,8 @@ cleanup() {
     kill "$tloop_pid"
   fi
 
-  last_line=$(tail -n 1 $tmp_file)
-  time_studied=$(expr $minutes - $last_line)
+  last_line_tmp=$(tail -n 1 $tmp_file)
+  time_studied=$(expr $minutes - $last_line_tmp)
 
   printf "\nStudied for $time_studied minutes\n"
 
@@ -48,6 +56,16 @@ cleanup() {
   awk -v var="$next" 'NF>1 && NR==1 {$NF=var}' $todays_file
 
   echo -e "$(sed -e "s/$(head -n 1 $todays_file)/${next_number_of_sessions_today}/g" $todays_file)\n" > $todays_file
+  
+  echo -e "Studied for $time_studied minutes\n" >> $todays_file
+
+
+  current_amount_studied=$(head -n 2 $todays_file | awk 'NF>1 && NR==2{print $NF}')
+
+  nextstudied=$(expr $current_amount_studied + $time_studied)
+
+  next_amount_studied_today=$(head -n 2 $todays_file | awk -v var="$nextstudied" 'NF>1 && NR==2 {$NF=var; print}')
+  echo -e "$(sed -e "s/$(head -n 2 $todays_file | tail -n 1)/${next_amount_studied_today}/g" $todays_file)\n" > $todays_file
 }
 trap cleanup EXIT
 
@@ -100,6 +118,7 @@ tloop() {
     echo $t >> $tmp_file
   done
 
+  notify-send "CLI Timer Ended!" "<i><span color='#ffffff'>Start another now!</span></i>"
   printf "\n\nTime is up!\n\nPress Enter to Close\n"
   paplay $SOUND_EFFECT
   while sleep 3; do
