@@ -66,6 +66,7 @@ tloop() {
   t=$(cat $todays_file)
   printf "\n"
   printf "\r$t minutes left"
+  # TODO: Change formatting to +%H:%M:%S
   while [ $t -gt 0 ]; do
     sleep 60
     let "t-=1"
