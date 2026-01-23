@@ -67,7 +67,7 @@ tloop() {
   printf "\n"
   printf "\r$t minutes left"
   while [ $t -gt 0 ]; do
-    sleep 1
+    sleep 60
     let "t-=1"
     text="$t minutes left"
     printf "\r$text"
