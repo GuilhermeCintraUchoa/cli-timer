@@ -5,12 +5,24 @@ day=$(date +"%d.%m.%y")
 
 SOUND_EFFECT="$SCRIPT_DIR/assets/bell.wav"
 
-todays_file=$(find $SCRIPT_DIR/sessions/ -name $day)
+# Creating a tmp file
+tmp_file=$(find $SCRIPT_DIR/sessions/ -name "tmp")
+if [[ -z $tmp_file ]]; then
+  touch "$SCRIPT_DIR/sessions/tmp"
+  tmp_file=$(find $SCRIPT_DIR/sessions/ -name "tmp")
+fi 
+
+# Creating the todays file
+todays_file=$(find $SCRIPT_DIR/sessions/ -name $day) 
 if [[ -z $todays_file ]]; then
   touch "$SCRIPT_DIR/sessions/$day"
   todays_file=$(find $SCRIPT_DIR/sessions/ -name $day)
+  echo "Number of sessions: 0" > $todays_file
 fi 
 
+number_of_sessions_today=$(head -n 1 $todays_file | awk 'NF>1{print $NF}')
+# first_line_today=$(head -n 1 $todays_file)
+# printf "n: $number_of_sessions_today"
 
 # TODO: every file should be a date of this format and should store every session
 printf "day: $day\n"
@@ -23,6 +35,19 @@ cleanup() {
   if [[ -n $tloop_pid ]]; then
     kill "$tloop_pid"
   fi
+
+  last_line=$(tail -n 1 $tmp_file)
+  time_studied=$(expr $minutes - $last_line)
+
+  printf "\nStudied for $time_studied minutes\n"
+
+  next=$(expr $number_of_sessions_today + 1)
+  next_number_of_sessions_today=$(head -n 1 $todays_file | awk -v var="$next" 'NF>1{$NF=var; print}')
+  # echo $next_number_of_sessions_today > $todays_file 
+  # head -n 1 $todays_file | awk -v var="$next" 'NF>1 && NR==1 {$NF=var}'
+  awk -v var="$next" 'NF>1 && NR==1 {$NF=var}' $todays_file
+
+  echo -e "$(sed -e "s/$(head -n 1 $todays_file)/${next_number_of_sessions_today}/g" $todays_file)\n" > $todays_file
 }
 trap cleanup EXIT
 
@@ -38,7 +63,7 @@ initial_prompt() {
     printf "\nERROR: Empty Input\n"
     exit 1
   fi
-  echo $minutes > $todays_file
+  echo $minutes > $tmp_file
 }
 
 read_input() {
@@ -47,7 +72,7 @@ read_input() {
 
   if [ "$pause" = "p" ] || [ "$pause" = "P" ]
     then
-      t=$(cat $todays_file)
+      t=$(tail -n 1 $tmp_file)
       kill "$tloop_pid"
       tloop_pid=
       printf "\n\nPAUSED AT $t! Press 's' to start."
@@ -63,7 +88,7 @@ read_input() {
 }
 
 tloop() {
-  t=$(cat $todays_file)
+  t=$(tail -n 1 $tmp_file)
   printf "\n"
   printf "\r$t minutes left"
   # TODO: Change formatting to +%H:%M:%S
@@ -72,14 +97,14 @@ tloop() {
     let "t-=1"
     text="$t minutes left"
     printf "\r$text"
-    echo $t > $todays_file
+    echo $t >> $tmp_file
   done
 
-  printf "\nPress Enter to Close\n"
+  printf "\n\nTime is up!\n\nPress Enter to Close\n"
   paplay $SOUND_EFFECT
   while sleep 3; do
-    paplay $SOUND_EFFECT
     printf "Press Enter to Close\n"
+    paplay $SOUND_EFFECT
   done
 }
 
