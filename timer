@@ -90,6 +90,7 @@ read_input() {
 
   if [ "$pause" = "p" ] || [ "$pause" = "P" ]
     then
+      echo "Paused at $(date +"%d-%m-%4Y %T")" >> $todays_file
       t=$(tail -n 1 $tmp_file)
       kill "$tloop_pid"
       tloop_pid=
@@ -99,9 +100,22 @@ read_input() {
       read -sn 1 start
       if [ "$start" = "s" ] || [ "$start" = "S" ]
       then
-        printf "\n\nStarting...\n"
+        printf "\nRestarting...\n"
+        echo "Restarted at $(date +"%d-%m-%4Y %T")" >> $todays_file
         beg
+      else 
+        if [[ -n $start ]] && [ "$start" != "S" ] && [ "$start" != "s" ]
+        then
+          echo "Interrupted after $((minutes-t)) minute(s)" >> $todays_file
+        fi
       fi
+
+  else 
+    if [[ -n $pause ]] && [ "$pause" != "P" ] && [ "$pause" != "p" ]
+    then
+      t=$(tail -n 1 $tmp_file)
+      echo "Interrupted after $((minutes-t)) minute(s)" >> $todays_file
+    fi
   fi
 }
 
@@ -117,6 +131,8 @@ tloop() {
     printf "\r$text"
     echo $t >> $tmp_file
   done
+
+  echo "Ended at $(date +"%d-%m-%4Y %T")" >> $todays_file
 
   notify-send "CLI Timer Ended!" "<i><span color='#ffffff'>Start another now!</span></i>"
   printf "\n\nTime is up!\n\nPress Enter to Close\n"
